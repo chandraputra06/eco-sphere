@@ -2,10 +2,23 @@
 export default {
   content: [
     "./index.html",
-    "./src/**/*.{js,jsx,ts,tsx}"
+    "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        // Nama "animal" di sini akan menjadi class "font-animal"
+        animal: ['"Animal Chariot"', 'cursive'],
+      },
+      // (Opsional) Kamu juga bisa memindahkan warna-warnamu dari @theme index.css ke sini
+      colors: {
+        primary: {
+          DEFAULT: '#1F7A6B',
+          dark: '#153C35',
+          light: '#4FA493',
+        }
+      }
+    },
   },
   plugins: [],
 }

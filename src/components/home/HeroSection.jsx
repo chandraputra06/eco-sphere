@@ -4,7 +4,6 @@ import { useHeroSlider } from '../../hooks/useHeroSlider'
 const heroImages = [
   { src: '/assets/img/img-home-1.jpg', alt: 'Environment 1' },
   { src: '/assets/img/bali-tercemar-1.jpg', alt: 'Environment 2' },
- 
 ]
 
 export default function HeroSection() {
@@ -27,7 +26,8 @@ export default function HeroSection() {
           ))}
         </div>
         <div className="absolute inset-0 bg-hero-overlay" />
-        <div className="absolute inset-0 bg-linear-to-b from-black/60 via-transparent to-black/20" />
+        {/* Diperbaiki: bg-gradient-to-b */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/20" />
       </div>
 
       {/* Content */}
@@ -46,9 +46,11 @@ export default function HeroSection() {
 
           <div className="reveal reveal-up delay-400 flex flex-wrap gap-4">
             <Link to="/report">
-                <button className="group relative overflow-hidden bg-[#1E7A6B] text-primary px-8 py-3 rounded-full text-base font-bold transition-all duration-300 transform hover:-translate-y-1 hover:shadow-[0_10px_25px_rgba(255,255,255,0.3)] active:scale-95 cursor-pointer">
+                {/* Diperbaiki: text-white */}
+                <button className="group relative overflow-hidden bg-[#1E7A6B] text-white px-8 py-3 rounded-full text-base font-bold transition-all duration-300 transform hover:-translate-y-1 hover:shadow-[0_10px_25px_rgba(255,255,255,0.3)] active:scale-95 cursor-pointer">
                 <span className="relative z-10">Report Waste</span>
-                <div className="absolute inset-0 w-full h-full bg-linear-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
+                {/* Diperbaiki: bg-gradient-to-r */}
+                <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
               </button>
             </Link>
 
