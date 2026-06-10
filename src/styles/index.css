@@ -245,3 +245,252 @@ html {
     animation: growLine 1.5s ease-out forwards;
   }
 }
+/* =========================
+   GLASSMORPHISM + MESH (Waste Analysis)
+========================= */
+
+/* Frosted-glass surface */
+.glass {
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow:
+    0 8px 40px rgba(31, 122, 107, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+/* Lighter glass for inner cards */
+.glass-soft {
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(14px) saturate(130%);
+  -webkit-backdrop-filter: blur(14px) saturate(130%);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+}
+
+/* Dark glass (used over imagery / hero) */
+.glass-dark {
+  background: rgba(16, 24, 40, 0.35);
+  backdrop-filter: blur(12px) saturate(120%);
+  -webkit-backdrop-filter: blur(12px) saturate(120%);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+/* Soft mesh-gradient background scene */
+.mesh-bg {
+  position: relative;
+  background:
+    radial-gradient(60% 60% at 12% 8%, rgba(79, 164, 147, 0.18) 0%, rgba(79, 164, 147, 0) 60%),
+    radial-gradient(55% 55% at 88% 14%, rgba(31, 122, 107, 0.14) 0%, rgba(31, 122, 107, 0) 60%),
+    radial-gradient(70% 70% at 78% 92%, rgba(63, 175, 218, 0.12) 0%, rgba(63, 175, 218, 0) 60%),
+    radial-gradient(60% 60% at 18% 96%, rgba(134, 196, 183, 0.16) 0%, rgba(134, 196, 183, 0) 60%),
+    #F3FAF8;
+}
+
+/* Floating blur orbs for depth */
+.mesh-orb {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(60px);
+  opacity: 0.55;
+  pointer-events: none;
+  z-index: 0;
+  animation: meshFloat 14s ease-in-out infinite;
+}
+
+@keyframes meshFloat {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(18px, -22px) scale(1.08); }
+}
+
+/* Gradient ring used on selected glass cards */
+.ring-glow {
+  box-shadow:
+    0 0 0 2px rgba(31, 122, 107, 0.35),
+    0 12px 36px rgba(31, 122, 107, 0.18);
+}
+
+/* Subtle lift on hover */
+.lift {
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 48px rgba(31, 122, 107, 0.18);
+}
+
+/* Animated conic shimmer for the AI scan state */
+@keyframes spinSlow {
+  to { transform: rotate(360deg); }
+}
+.scan-ring {
+  background: conic-gradient(
+    from 0deg,
+    rgba(31, 122, 107, 0) 0deg,
+    rgba(31, 122, 107, 0.6) 120deg,
+    rgba(79, 164, 147, 0.9) 220deg,
+    rgba(31, 122, 107, 0) 360deg
+  );
+  animation: spinSlow 1.4s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mesh-orb,
+  .scan-ring { animation: none; }
+  .lift { transition: none; }
+  .lift:hover { transform: none; }
+}
+
+/* =========================
+   AI SCANNER (Waste Analysis upload)
+========================= */
+
+/* Corner-bracket frame overlaid on the photo */
+.scan-frame {
+  position: absolute;
+  inset: 14px;
+  border-radius: 18px;
+  pointer-events: none;
+  z-index: 2;
+}
+.scan-frame::before,
+.scan-frame::after,
+.scan-frame > .c-tl,
+.scan-frame > .c-tr,
+.scan-frame > .c-bl,
+.scan-frame > .c-br {
+  content: '';
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  border: 3px solid rgba(255, 255, 255, 0.95);
+  filter: drop-shadow(0 1px 3px rgba(21, 60, 53, 0.5));
+}
+/* top-left */
+.scan-frame > .c-tl { top: 0; left: 0; border-right: none; border-bottom: none; border-top-left-radius: 14px; }
+/* top-right */
+.scan-frame > .c-tr { top: 0; right: 0; border-left: none; border-bottom: none; border-top-right-radius: 14px; }
+/* bottom-left */
+.scan-frame > .c-bl { bottom: 0; left: 0; border-right: none; border-top: none; border-bottom-left-radius: 14px; }
+/* bottom-right */
+.scan-frame > .c-br { bottom: 0; right: 0; border-left: none; border-top: none; border-bottom-right-radius: 14px; }
+
+/* Sweeping scan line */
+.scan-line {
+  position: absolute;
+  left: 6%;
+  right: 6%;
+  height: 3px;
+  border-radius: 9999px;
+  background: linear-gradient(90deg,
+    rgba(79, 164, 147, 0) 0%,
+    rgba(110, 231, 183, 0.95) 50%,
+    rgba(79, 164, 147, 0) 100%);
+  box-shadow: 0 0 14px 3px rgba(110, 231, 183, 0.7);
+  z-index: 3;
+  animation: scanSweep 2s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+@keyframes scanSweep {
+  0%   { top: 12%; opacity: 0; }
+  12%  { opacity: 1; }
+  88%  { opacity: 1; }
+  100% { top: 88%; opacity: 0; }
+}
+
+/* Faint scan grid that pulses while analyzing */
+.scan-grid {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background-image:
+    linear-gradient(rgba(110, 231, 183, 0.12) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(110, 231, 183, 0.12) 1px, transparent 1px);
+  background-size: 26px 26px;
+  animation: gridPulse 2.4s ease-in-out infinite;
+}
+@keyframes gridPulse {
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 0.55; }
+}
+
+/* Progress bar fill (driven by inline width %) */
+.scan-progress-track {
+  height: 6px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.35);
+  overflow: hidden;
+}
+.scan-progress-fill {
+  height: 100%;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, #4FA493, #6EE7B7);
+  box-shadow: 0 0 10px rgba(110, 231, 183, 0.7);
+  transition: width 0.3s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scan-line,
+  .scan-grid { animation: none; }
+  .scan-line { top: 50%; }
+}
+
+/* =========================
+   POINTS POPUP + SUB-OPTION REVEAL (Scan Waste)
+========================= */
+
+/* Modal backdrop + card entrance */
+.points-backdrop {
+  animation: fadeIn 0.25s ease-out forwards;
+}
+.points-card {
+  animation: popIn 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes popIn {
+  0%   { opacity: 0; transform: translateY(16px) scale(0.92); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Coin badge pulse */
+.coin-pulse {
+  animation: coinPulse 1.4s ease-in-out infinite;
+}
+@keyframes coinPulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.45); }
+  50%      { transform: scale(1.06); box-shadow: 0 0 0 14px rgba(245, 158, 11, 0); }
+}
+
+/* Confetti dots */
+.confetti {
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  top: -12px;
+  opacity: 0;
+  animation: confettiFall 1.3s ease-in forwards;
+}
+@keyframes confettiFall {
+  0%   { opacity: 0; transform: translateY(0) rotate(0deg); }
+  10%  { opacity: 1; }
+  100% { opacity: 0; transform: translateY(180px) rotate(420deg); }
+}
+
+/* Smooth expand for the chosen sub-option detail */
+.detail-reveal {
+  animation: detailReveal 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+@keyframes detailReveal {
+  from { opacity: 0; transform: translateY(-8px); max-height: 0; }
+  to   { opacity: 1; transform: translateY(0); max-height: 1200px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .points-backdrop, .points-card, .coin-pulse, .confetti, .detail-reveal { animation: none; }
+  .points-card { opacity: 1; transform: none; }
+  .detail-reveal { opacity: 1; transform: none; max-height: none; }
+}
