@@ -19,8 +19,8 @@ export default function App() {
         <Route path="gamification" element={<Gamification />} />
         <Route path="contact" element={<ContactUs/>} />
         <Route path="report" element={<WasteReport />} />
-        <Route path="profile" element={<Profile />} />
       </Route>
+        <Route path="profile" element={<Profile />} />
     </Routes>
   )
 }
