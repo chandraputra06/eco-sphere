@@ -10,6 +10,7 @@ import Gamification from "./src/pages/Gamification";
 import ContactUs from "./src/pages/ContactUs";
 import WasteReport from "./src/pages/WasteReport";
 import Profile from "./src/pages/Profile";
+import CSRDashboard from "./src/pages/CSRDashboard";
 
 export default function App() {
   return (
@@ -21,6 +22,7 @@ export default function App() {
         <Route path="gamification" element={<Gamification />} />
         <Route path="contact" element={<ContactUs />} />
         <Route path="report" element={<WasteReport />} />
+        <Route path="csr-dashboard" element={<CSRDashboard />} />
       </Route>
 
       <Route
