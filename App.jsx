@@ -1,13 +1,15 @@
-import { Routes, Route } from 'react-router-dom'
-import WasteReport from './src/pages/WasteReport'
-import Profile from './src/pages/Profile'
-import Leaderboard from './src/pages/Leaderboard'
-import Layout from './src/components/layout/Layout'
-import Home from './src/pages/Home'
-import WasteMap from './src/pages/WasteMap'
-import ContactUs from './src/pages/ContactUs'
-import Gamification from './src/pages/Gamification'
+import { Routes, Route } from "react-router-dom";
 
+import Layout from "./src/components/layout/Layout";
+import ProtectedRoute from "./src/routes/ProtectedRoute";
+
+import Home from "./src/pages/Home";
+import WasteMap from "./src/pages/WasteMap";
+import Leaderboard from "./src/pages/Leaderboard";
+import Gamification from "./src/pages/Gamification";
+import ContactUs from "./src/pages/ContactUs";
+import WasteReport from "./src/pages/WasteReport";
+import Profile from "./src/pages/Profile";
 
 export default function App() {
   return (
@@ -17,10 +19,18 @@ export default function App() {
         <Route path="waste-map" element={<WasteMap />} />
         <Route path="leaderboard" element={<Leaderboard />} />
         <Route path="gamification" element={<Gamification />} />
-        <Route path="contact" element={<ContactUs/>} />
+        <Route path="contact" element={<ContactUs />} />
         <Route path="report" element={<WasteReport />} />
       </Route>
-        <Route path="profile" element={<Profile />} />
+
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <Profile />
+          </ProtectedRoute>
+        }
+      />
     </Routes>
-  )
+  );
 }

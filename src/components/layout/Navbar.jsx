@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { loginUser } from '../../services/authService'
 
 export default function Navbar({ variant = 'type1' }) {
   const [scrolled, setScrolled] = useState(false)
@@ -11,7 +12,10 @@ export default function Navbar({ variant = 'type1' }) {
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 60)
+
     window.addEventListener('scroll', onScroll)
+    onScroll()
+
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
@@ -184,9 +188,10 @@ export default function Navbar({ variant = 'type1' }) {
             sm:px-6 sm:py-5
             lg:px-20 lg:py-5
             xl:px-36
-            ${isWhiteNavbar
-              ? 'border-b border-gray-100 bg-white/95 shadow-md backdrop-blur-md'
-              : 'border-b border-white/10 bg-[#1e7a6b]/60 backdrop-blur-sm'
+            ${
+              isWhiteNavbar
+                ? 'border-b border-gray-100 bg-white/95 shadow-md backdrop-blur-md'
+                : 'border-b border-white/10 bg-[#1e7a6b]/60 backdrop-blur-sm'
             }
           `}
         >
@@ -205,8 +210,9 @@ export default function Navbar({ variant = 'type1' }) {
             />
 
             <h1
-              className={`truncate text-lg font-bold tracking-tight transition-all duration-300 sm:text-xl ${isWhiteNavbar ? 'text-[#1F7A6B]' : 'text-white'
-                }`}
+              className={`truncate text-lg font-bold tracking-tight transition-all duration-300 sm:text-xl ${
+                isWhiteNavbar ? 'text-[#1F7A6B]' : 'text-white'
+              }`}
             >
               Eco-Sphere
             </h1>
@@ -214,19 +220,21 @@ export default function Navbar({ variant = 'type1' }) {
 
           {variant === 'type1' && (
             <div
-              className={`hidden items-center gap-8 md:flex lg:gap-12 ${isWhiteNavbar ? 'nav-scrolled' : 'nav-transparent'
-                }`}
+              className={`hidden items-center gap-8 md:flex lg:gap-12 ${
+                isWhiteNavbar ? 'nav-scrolled' : 'nav-transparent'
+              }`}
             >
               {navLinks.map((link) => (
                 <Link
                   key={link.to}
                   to={link.to}
-                  className={`nav-link ${isActive(link.to)
+                  className={`nav-link ${
+                    isActive(link.to)
                       ? isWhiteNavbar
                         ? 'active-scrolled'
                         : 'active-transparent'
                       : ''
-                    }`}
+                  }`}
                 >
                   {link.label}
                 </Link>
@@ -283,19 +291,23 @@ export default function Navbar({ variant = 'type1' }) {
             >
               <span className="flex flex-col items-center justify-center gap-[5px]">
                 <span
-                  className={`block h-[2px] w-6 rounded-full transition-all duration-300 ${isWhiteNavbar ? 'bg-gray-700' : 'bg-white'
-                    } ${mobileOpen ? 'translate-y-[7px] rotate-45' : ''}`}
+                  className={`block h-[2px] w-6 rounded-full transition-all duration-300 ${
+                    isWhiteNavbar ? 'bg-gray-700' : 'bg-white'
+                  } ${mobileOpen ? 'translate-y-[7px] rotate-45' : ''}`}
                 />
                 <span
-                  className={`block h-[2px] w-6 rounded-full transition-all duration-300 ${isWhiteNavbar ? 'bg-gray-700' : 'bg-white'
-                    } ${mobileOpen ? 'scale-x-0 opacity-0' : ''}`}
+                  className={`block h-[2px] w-6 rounded-full transition-all duration-300 ${
+                    isWhiteNavbar ? 'bg-gray-700' : 'bg-white'
+                  } ${mobileOpen ? 'scale-x-0 opacity-0' : ''}`}
                 />
                 <span
-                  className={`block h-[2px] rounded-full transition-all duration-300 ${isWhiteNavbar ? 'bg-gray-700' : 'bg-white'
-                    } ${mobileOpen
+                  className={`block h-[2px] rounded-full transition-all duration-300 ${
+                    isWhiteNavbar ? 'bg-gray-700' : 'bg-white'
+                  } ${
+                    mobileOpen
                       ? 'w-6 -translate-y-[7px] -rotate-45'
                       : 'w-4 self-end'
-                    }`}
+                  }`}
                 />
               </span>
             </button>
@@ -303,18 +315,20 @@ export default function Navbar({ variant = 'type1' }) {
         </div>
 
         <div
-          className={`absolute left-0 top-full z-[210] w-full origin-top transition-all duration-300 md:hidden ${mobileOpen
+          className={`absolute left-0 top-full z-[210] w-full origin-top transition-all duration-300 md:hidden ${
+            mobileOpen
               ? 'pointer-events-auto scale-y-100 opacity-100'
               : 'pointer-events-none scale-y-95 opacity-0'
-            }`}
+          }`}
         >
           <div className="flex max-h-[calc(100vh-72px)] flex-col gap-1 overflow-y-auto border-t border-gray-100 bg-white px-4 py-5 shadow-xl sm:px-6">
             {navLinks.map((link) => (
               <Link
                 key={link.to}
                 to={link.to}
-                className={`mobile-link ${isActive(link.to) ? 'active-mobile' : ''
-                  }`}
+                className={`mobile-link ${
+                  isActive(link.to) ? 'active-mobile' : ''
+                }`}
                 onClick={() => setMobileOpen(false)}
               >
                 {link.label}
@@ -410,6 +424,7 @@ export default function Navbar({ variant = 'type1' }) {
               <button
                 type="button"
                 onClick={() => {
+                  loginUser()
                   setLoginOpen(false)
                   navigate('/profile')
                 }}
