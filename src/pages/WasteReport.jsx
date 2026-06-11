@@ -524,8 +524,8 @@ export default function WasteAnalysis() {
             className="w-full h-full object-cover opacity-60"
           />
           {/* layered toska gradient overlays */}
-          <div className="absolute inset-0 bg-gradient-to-br from-primary-dark/90 via-primary-dark/55 to-primary/40" />
-          <div className="absolute inset-0 bg-gradient-to-t from-primary-dark via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-br from-black/90 via-black/55 to-black/40" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
         </div>
 
         <div className="relative z-10 container mx-auto px-6 lg:px-12 flex flex-col min-h-[80vh]">
@@ -1183,7 +1183,6 @@ export default function WasteAnalysis() {
             <div className="flex items-end justify-between gap-4 mb-8 reveal reveal-up">
               <div>
                 <h2 className="text-2xl md:text-4xl font-semibold text-primary-dark tracking-tight flex items-center gap-2.5">
-                  <Activity className="h-7 w-7 text-primary" />
                   Active Reports
                 </h2>
                 <p className="text-gray-500 text-sm mt-1.5">
