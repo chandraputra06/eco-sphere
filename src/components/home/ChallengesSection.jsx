@@ -9,19 +9,19 @@ const impactImages = [
 const stats = [
   {
     icon: '/assets/icon/Icon-home-1.png',
-    value: '3,800',
+    value: '3,436',
     unit: 'tons/day',
     desc: 'Daily waste output continues to rise due to tourism and urban growth, overwhelming local disposal systems.',
   },
   {
     icon: '/assets/icon/Icon-home-2.png',
-    value: '48%',
+    value: '73%',
     unit: null,
     desc: 'Nearly half of all waste still ends up in open dumping sites or leaks into surrounding ecosystems.',
   },
   {
     icon: '/assets/icon/Icon-home-3.png',
-    value: '33',
+    value: '33,000',
     unit: 'tons',
     desc: 'Plastic waste entering the ocean annually, threatening marine ecosystems and coastal tourism.',
   },

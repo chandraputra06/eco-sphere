@@ -55,10 +55,10 @@ export default function CSRDashboard() {
   )
 
   return (
-    <div className="font-poppins bg-bali-50 text-gray-900 min-h-screen pt-20">
+    <div className="font-poppins bg-bali-50 text-gray-900 min-h-screen">
       <div className="flex">
         {/* ===================== SIDEBAR (desktop) ===================== */}
-        <aside className="hidden lg:flex w-64 shrink-0 flex-col bg-primary-dark text-white min-h-[calc(100vh-5rem)] sticky top-20">
+        <aside className="hidden lg:flex w-64 shrink-0 flex-col bg-primary-dark text-white min-h-screen sticky top-0">
           <div className="px-6 py-6 border-b border-white/10">
             <p className="font-animal text-2xl leading-none">Eco-Sphere</p>
             <p className="text-[11px] uppercase tracking-widest text-bali-50/60 mt-1">CSR Dashboard</p>
