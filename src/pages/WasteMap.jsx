@@ -15,16 +15,27 @@ export default function WasteMap() {
 
   useEffect(() => {
     if (mapInstanceRef.current) return;
+
+    // Load Leaflet, THEN leaflet.heat (heat depends on L being defined first)
+    const loadHeatThenInit = () => {
+      if (window.L && window.L.heatLayer) {
+        initMap();
+        return;
+      }
+      const heatScript = document.createElement('script');
+      heatScript.src = 'https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js';
+      heatScript.onload = () => initMap();
+      heatScript.onerror = () => initMap(); // still init map even if heat fails
+      document.head.appendChild(heatScript);
+    };
+
     if (!window.L) {
       const script = document.createElement('script');
       script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-      script.onload = () => initMap();
+      script.onload = loadHeatThenInit;
       document.head.appendChild(script);
-      const heatScript = document.createElement('script');
-      heatScript.src = 'https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js';
-      document.head.appendChild(heatScript);
     } else {
-      initMap();
+      loadHeatThenInit();
     }
     return () => {
       if (mapInstanceRef.current) {
@@ -64,18 +75,12 @@ export default function WasteMap() {
     laporanGroup.addTo(map);
     layersRef.current.laporan = laporanGroup;
 
-    // Heatmap layer
+    // Heatmap layer (leaflet.heat is now guaranteed loaded before initMap)
     const heatData = reports.map(r => [r.lat, r.lng, r.status === 'Critical' ? 1 : 0.5]);
-    let heatLayer;
-    const tryHeat = () => {
-      if (window.L && window.L.heatLayer) {
-        heatLayer = window.L.heatLayer(heatData, { radius: 35, blur: 20, maxZoom: 14 });
-        layersRef.current.heatmap = heatLayer;
-      } else {
-        setTimeout(tryHeat, 500);
-      }
-    };
-    tryHeat();
+    if (window.L && window.L.heatLayer) {
+      const heatLayer = window.L.heatLayer(heatData, { radius: 35, blur: 20, maxZoom: 14 });
+      layersRef.current.heatmap = heatLayer;
+    }
 
     // TPA layer
     const tpaGroup = L.layerGroup();
@@ -112,6 +117,12 @@ export default function WasteMap() {
     if (!map) return;
     const newState = { ...activeLayer, [key]: !activeLayer[key] };
     setActiveLayer(newState);
+
+    // Lazily build the heat layer if it wasn't ready at init time
+    if (key === 'heatmap' && !layersRef.current.heatmap && window.L && window.L.heatLayer) {
+      const heatData = reports.map(r => [r.lat, r.lng, r.status === 'Critical' ? 1 : 0.5]);
+      layersRef.current.heatmap = window.L.heatLayer(heatData, { radius: 35, blur: 20, maxZoom: 14 });
+    }
 
     const layer = layersRef.current[key];
     if (!layer) return;

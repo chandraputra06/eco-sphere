@@ -75,7 +75,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link to="/report" className="hover:text-primary transition-colors">
-                  Report Waste
+                  Scan Waste
                 </Link>
               </li>
             </ul>
@@ -91,7 +91,7 @@ export default function Footer() {
             </p>
             <Link to="/report" className="inline-block">
               <button className="bg-primary text-white px-8 py-3 rounded-xl font-bold hover:bg-bali-600 transition-all shadow-md w-full md:w-auto cursor-pointer">
-                Report Now
+                Scan Waste
               </button>
             </Link>
           </div>
