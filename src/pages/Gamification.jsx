@@ -33,7 +33,7 @@ export default function Gamification() {
         <div className="absolute inset-0 z-0">
           <img
             src="/assets/img/bg-gamifikasi.png"
-            alt="Eco Warrior"
+            alt="Eco Missions"
             className="w-full h-full object-cover opacity-45"
             onError={e => { e.target.style.display = 'none' }}
           />
@@ -42,10 +42,10 @@ export default function Gamification() {
 
         <div className="relative z-10 max-w-5xl mx-auto px-6 py-32 flex flex-col items-center text-center">
           <h1 className="font-animal text-5xl md:text-8xl lg:text-9xl text-white leading-tight mb-6 reveal reveal-up delay-100">
-            Eco Warrior
+            Eco Missions
           </h1>
           <p className="text-white/65 text-sm md:text-base max-w-md leading-relaxed mb-10 reveal reveal-up delay-200">
-            Track your impact, complete missions, and compete with other eco warriors across Bali to protect our environment.
+            Track your impact, complete missions, and compete with other eco mission across Bali to protect our environment.
           </p>
 
           <div className="flex flex-wrap justify-center gap-3 reveal reveal-up delay-300">
@@ -87,7 +87,7 @@ export default function Gamification() {
                 />
               </div>
               <p className="text-[11px] text-gray-400 mt-2.5 italic">
-                *Earn 650 more XP to level up to Eco Warrior rank.
+                *Earn 650 more XP to level up to Eco Mission rank.
               </p>
             </div>
 
