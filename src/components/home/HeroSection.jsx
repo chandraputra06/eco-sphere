@@ -48,7 +48,7 @@ export default function HeroSection() {
             <Link to="/report">
                 {/* Diperbaiki: text-white */}
                 <button className="group relative overflow-hidden bg-[#1E7A6B] text-white px-8 py-3 rounded-full text-base font-bold transition-all duration-300 transform hover:-translate-y-1 hover:shadow-[0_10px_25px_rgba(255,255,255,0.3)] active:scale-95 cursor-pointer">
-                <span className="relative z-10">Report Waste</span>
+                <span className="relative z-10">Scan Waste</span>
                 {/* Diperbaiki: bg-gradient-to-r */}
                 <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
               </button>

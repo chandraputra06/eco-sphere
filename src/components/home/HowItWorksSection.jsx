@@ -32,9 +32,9 @@ export default function HowItWorksSection() {
     <section className="py-24 mt-12 relative z-20 bg-bali-50 rounded-t-3xl shadow-[0_-8px_30px_rgba(0,0,0,0.08)] overflow-hidden">
       <div className="container mx-auto px-6 lg:px-36 text-center">
         <div className="max-w-3xl mx-auto mb-20 reveal reveal-up">
-          <h2 className="text-5xl font-semibold text-gray-900 mb-6">How Waste Reporting Works</h2>
+          <h2 className="text-5xl font-semibold text-gray-900 mb-6">How Scan Waste Works</h2>
           <p className="text-gray-500 text-md leading-relaxed">
-            Simple steps to report waste and help keep the environment clean in real-time.
+            Simple steps to scan and report waste and help keep the environment clean in real-time.
           </p>
         </div>
 
@@ -66,7 +66,7 @@ export default function HowItWorksSection() {
 
         <Link to="/report">
           <button className="bg-white text-primary border border-primary/10 px-10 py-4 rounded-full font-bold text-lg shadow-lg hover:bg-[#1e7a6b] hover:text-white transition-all duration-300 transform hover:-translate-y-1 reveal reveal-up delay-900">
-            Start Reporting Now →
+            Start Scanning Now →
           </button>
         </Link>
       </div>
