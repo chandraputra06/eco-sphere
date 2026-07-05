@@ -1,19 +1,50 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { MapPin, X, AlertTriangle, CheckCircle2, Info } from 'lucide-react';
 
-import { reports, tpaData, bankSampahData } from '../data/mapData';
+import { reports, tpaData, bankSampahData, grapariData } from '../data/mapData';
+import { useAuth } from '../context/AuthContext';
+import { api } from '../services/api';
 
 const PRIMARY = '#1F7A6B';
 const DARK = '#153C35';
 
+// Ubah laporan backend -> bentuk yang dipakai peta
+function mapReport(r) {
+  const status = r.status === 'resolved' ? 'Resolved' : r.status === 'in_progress' ? 'Warning' : 'Critical';
+  return {
+    id: r.id, lat: r.lat, lng: r.lng, status,
+    title: r.category || 'Assigned report',
+    desc: r.address || '',
+    reporter: 'Citizen',
+    time: r.createdAt ? new Date(r.createdAt).toLocaleDateString() : '',
+    img: '/assets/img/pelaporan/hero-pelaporan-img.png',
+  };
+}
+
 export default function WasteMap() {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
-  const [activeLayer, setActiveLayer] = useState({ laporan: true, heatmap: false, tpa: false, banksampah: false });
+  const [activeLayer, setActiveLayer] = useState({ laporan: true, heatmap: false, tpa: false, banksampah: false, grapari: true });
   const [selectedReport, setSelectedReport] = useState(null);
   const layersRef = useRef({});
+  const { user } = useAuth();
+  const [reportsData, setReportsData] = useState(reports);
+  const [dataReady, setDataReady] = useState(false);
+
+  // Org (manager/collector) hanya melihat laporan yang di-assign ke mereka.
+  useEffect(() => {
+    const isOrg = user && (user.role === 'manager' || user.role === 'collector');
+    if (!isOrg) { setReportsData(reports); setDataReady(true); return; }
+    let alive = true;
+    api.myOrgReports()
+      .then((rows) => { if (alive) setReportsData(rows.map(mapReport)); })
+      .catch(() => { if (alive) setReportsData([]); })
+      .finally(() => { if (alive) setDataReady(true); });
+    return () => { alive = false; };
+  }, [user]);
 
   useEffect(() => {
+    if (!dataReady) return;
     if (mapInstanceRef.current) return;
 
     // Load Leaflet, THEN leaflet.heat (heat depends on L being defined first)
@@ -43,7 +74,7 @@ export default function WasteMap() {
         mapInstanceRef.current = null;
       }
     };
-  }, []);
+  }, [dataReady]);
 
   const initMap = () => {
     const L = window.L;
@@ -65,7 +96,7 @@ export default function WasteMap() {
 
     // Reports layer
     const laporanGroup = L.layerGroup();
-    reports.forEach(r => {
+    reportsData.forEach(r => {
       const color = r.status === 'Critical' ? '#ef4444' : r.status === 'Warning' ? '#f59e0b' : '#1F7A6B';
       const marker = L.circleMarker([r.lat, r.lng], {
         radius: 10, fillColor: color, color: 'white', weight: 2, fillOpacity: 0.9
@@ -76,7 +107,7 @@ export default function WasteMap() {
     layersRef.current.laporan = laporanGroup;
 
     // Heatmap layer (leaflet.heat is now guaranteed loaded before initMap)
-    const heatData = reports.map(r => [r.lat, r.lng, r.status === 'Critical' ? 1 : 0.5]);
+    const heatData = reportsData.map(r => [r.lat, r.lng, r.status === 'Critical' ? 1 : 0.5]);
     if (window.L && window.L.heatLayer) {
       const heatLayer = window.L.heatLayer(heatData, { radius: 35, blur: 20, maxZoom: 14 });
       layersRef.current.heatmap = heatLayer;
@@ -110,6 +141,21 @@ export default function WasteMap() {
       }).bindPopup(`<b>${b.name}</b><br>${b.address}<br>${b.hours}`).addTo(bankGroup);
     });
     layersRef.current.banksampah = bankGroup;
+
+    // Grapari (Telkomsel) layer — e-waste & SIM card drop points
+    const grapariGroup = L.layerGroup();
+    grapariData.forEach(g => {
+      L.marker([g.lat, g.lng], {
+        icon: L.divIcon({
+          className: '',
+          html: `<div style="background:#ee2737;width:28px;height:28px;border-radius:50%;border:2px solid white;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:white;box-shadow:0 2px 8px rgba(0,0,0,0.3)">G</div>`,
+          iconSize: [28, 28],
+          iconAnchor: [14, 14],
+        })
+      }).bindPopup(`<b>${g.name}</b><br>${g.address}<br>${g.hours}<br><i>${(g.services || []).join(', ')}</i>`).addTo(grapariGroup);
+    });
+    grapariGroup.addTo(map);
+    layersRef.current.grapari = grapariGroup;
   };
 
   const toggleLayer = (key) => {
@@ -120,7 +166,7 @@ export default function WasteMap() {
 
     // Lazily build the heat layer if it wasn't ready at init time
     if (key === 'heatmap' && !layersRef.current.heatmap && window.L && window.L.heatLayer) {
-      const heatData = reports.map(r => [r.lat, r.lng, r.status === 'Critical' ? 1 : 0.5]);
+      const heatData = reportsData.map(r => [r.lat, r.lng, r.status === 'Critical' ? 1 : 0.5]);
       layersRef.current.heatmap = window.L.heatLayer(heatData, { radius: 35, blur: 20, maxZoom: 14 });
     }
 
@@ -169,7 +215,7 @@ export default function WasteMap() {
           {/* Legend */}
           <div style={{ background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(12px)', padding: '12px 18px', borderRadius: 22, border: '1px solid rgba(255,255,255,0.5)', boxShadow: '0 4px 20px rgba(21,60,53,0.08)', pointerEvents: 'auto' }}>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px 20px' }}>
-              {[['#ef4444', 'Critical'], ['#f59e0b', 'Warning'], [PRIMARY, 'Resolved'], ['#3b82f6', 'Waste Bank']].map(([c, l]) => (
+              {[['#ef4444', 'Critical'], ['#f59e0b', 'Warning'], [PRIMARY, 'Resolved'], ['#3b82f6', 'Waste Bank'], ['#ee2737', 'Grapari']].map(([c, l]) => (
                 <div key={l} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <div style={{ width: 10, height: 10, borderRadius: '50%', background: c }} />
                   <span style={{ fontSize: 11, color: '#6b7280', fontWeight: 500 }}>{l}</span>
@@ -182,7 +228,7 @@ export default function WasteMap() {
           <div style={{ background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(12px)', padding: '12px 16px', borderRadius: 22, border: '1px solid rgba(255,255,255,0.5)', boxShadow: '0 4px 20px rgba(21,60,53,0.08)', pointerEvents: 'auto' }}>
             <p style={{ fontSize: 9, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 8, marginTop: 0 }}>Show Layers</p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-              {[['laporan', 'Reports'], ['heatmap', 'Heatmap'], ['tpa', 'Landfills'], ['banksampah', 'Waste Banks']].map(([k, l]) => (
+              {[['laporan', 'Reports'], ['heatmap', 'Heatmap'], ['tpa', 'Landfills'], ['banksampah', 'Waste Banks'], ['grapari', 'Grapari']].map(([k, l]) => (
                 <button key={k} className={`layer-btn ${activeLayer[k] ? 'active' : ''}`} onClick={() => toggleLayer(k)}>{l}</button>
               ))}
             </div>

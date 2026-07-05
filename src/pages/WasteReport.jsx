@@ -7,7 +7,7 @@ import {
   ScanSearch, Search, Activity, Clock, User, CircleDot, Camera, X, Circle,
   Trophy, Coins, TrendingUp, Phone, ExternalLink,
 } from 'lucide-react'
-import { GoogleGenerativeAI } from '@google/generative-ai'
+import { api } from '../services/api'
 import { useReveal } from '../hooks/useReveal'
 import { bankSampahData, reports } from '../data/mapData'
 import { csrChallenges } from '../data/gameData'
@@ -208,6 +208,11 @@ export default function WasteAnalysis() {
   const [selectedAction, setSelectedAction] = useState('')
   const [selfChoice, setSelfChoice] = useState('') // '' | 'bank' | 'diy'
   const [submitted, setSubmitted] = useState(false)
+  const [ewaste, setEwaste] = useState(false)
+  const [grapari, setGrapari] = useState([])
+  const [handlerKind, setHandlerKind] = useState('')
+  const [handlerOrgs, setHandlerOrgs] = useState([])
+  const [selectedOrgId, setSelectedOrgId] = useState('')
 
   // Points pop-up (animation only; leaderboard stays static)
   const [showPoints, setShowPoints] = useState(false)
@@ -220,7 +225,47 @@ export default function WasteAnalysis() {
     setSubmitted(false)
   }
 
-  const isBig = volume.toLowerCase().includes('large')
+  const chooseHandlerKind = async (kind) => {
+    setHandlerKind(kind)
+    setSelectedOrgId('')
+    setSelectedAction('')
+    try { setHandlerOrgs(await api.listOrgs(kind)) } catch { setHandlerOrgs([]) }
+  }
+  const chooseOrg = (org) => {
+    setSelectedOrgId(org.id)
+    setSelectedAction('community')
+    setSubmitted(false)
+  }
+
+  const handleSubmit = async () => {
+    if (selectedAction === 'map') { navigate('/waste-map'); return }
+    let earned = pointsFor(selectedAction, selfChoice)
+    try {
+      const report = await api.createReport({
+        lat: coords?.lat ?? 0,
+        lng: coords?.lng ?? 0,
+        address: location || undefined,
+        category: category || undefined,
+        volume: volume || undefined,
+        note: aiNote || undefined,
+        handlerOrgId: selectedOrgId || undefined,
+        action: selectedAction,
+      })
+      const res = await api.claimPoints({ reportId: report.id, action: selectedAction, selfChoice: selfChoice || undefined })
+      if (res?.earned != null) earned = res.earned
+    } catch {
+      /* fallback ke poin lokal kalau backend tak terjangkau */
+    }
+    setEarnedPoints(earned)
+    setSubmitted(true)
+    setShowPoints(true)
+  }
+
+  const vol = volume.toLowerCase()
+  const isBig = vol.includes('large') || vol.includes('besar')
+  const isMedium = vol.includes('medium') || vol.includes('sedang')
+  const isSmall = !isBig && !isMedium
+  const volumeLabel = isBig ? 'Large' : isMedium ? 'Medium' : 'Small'
   // Only show recommendations + submit when the image is actual waste
   const showActions = hasAnalyzed && isWaste
 
@@ -296,6 +341,11 @@ export default function WasteAnalysis() {
     setSelfChoice('')
     setSubmitted(false)
     setScanProgress(0)
+    setEwaste(false)
+    setGrapari([])
+    setHandlerKind('')
+    setHandlerOrgs([])
+    setSelectedOrgId('')
   }
 
   /* ----- Upload (Req. 2) ------------------------------------------ */
@@ -400,78 +450,30 @@ export default function WasteAnalysis() {
     }, 180)
 
     try {
-      const apiKey = import.meta.env.VITE_GEMINI_API_KEY
-      if (!apiKey) {
-        throw new Error('API key is not available. Add VITE_GEMINI_API_KEY to your .env file and restart the dev server.')
-      }
-
-      const genAI = new GoogleGenerativeAI(apiKey)
-      const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' })
-
-      const mimeType = preview.substring(preview.indexOf(':') + 1, preview.indexOf(';'))
-      const base64Data = preview.split(',')[1]
-
-      const prompt = `
-        You are an environmental expert. Analyze this image.
-        Reply with ONLY valid JSON, no other text, in exactly this shape:
-        {
-          "isWaste": true | false,
-          "category": "Organic" | "Plastic / Inorganic" | "B3 / Hazardous" | null,
-          "volume": "Small" | "Large" | null,
-          "note": "one short sentence in English"
-        }
-
-        Rules:
-        - Set "isWaste" to true ONLY if the image shows real, physical discarded waste/trash/litter.
-        - If the image is NOT actual waste (for example: an educational diagram, an illustration, a chart, a screenshot, a logo, a person, a landscape, food that is still good), set "isWaste" to false, set "category" and "volume" to null, and in "note" explain briefly what it is and, if printed, which waste type it could fall under. Example: "This image is educational material, not waste, which if printed could be classified as inorganic paper waste."
-        - When "isWaste" is true, fill "category" and "volume".
-        - Volume rules: "Small" = individual waste one person can clear quickly (e.g. a bottle, a food wrapper). "Large" = a pile of waste that is overflowing or needs many people/tools to clean up.
-      `
-
-      const result = await model.generateContent([
-        prompt,
-        { inlineData: { data: base64Data, mimeType } },
-      ])
-      const text = result.response.text()
-      const match = text.match(/\{[\s\S]*\}/)
-      if (!match) throw new Error('The AI did not return valid JSON. Please try another photo.')
-
-      const data = JSON.parse(match[0])
+      const data = await api.classify(preview)
       const waste = data.isWaste !== false
       setIsWaste(waste)
       setCategory(waste ? (data.category || 'Unknown') : '')
-      setVolume(waste ? (data.volume || 'Small') : '')
+      setVolume(waste ? (data.volume || 'small') : '')
       setAiNote(data.note || '')
       setSelectedAction('')
       setSubmitted(false)
       setHasAnalyzed(true)
+
+      const isEw = data.ewaste === true
+      setEwaste(isEw)
+      setHandlerKind(''); setHandlerOrgs([]); setSelectedOrgId(''); setGrapari([])
+      if (isEw && coords) {
+        try { setGrapari(await api.nearestCollectors({ lat: coords.lat, lng: coords.lng, ewaste: true })) } catch { /* ignore */ }
+      }
     } catch (err) {
-      console.error('AI error:', err)
-      const raw = (err?.message || '').toString()
-      const status = err?.status ?? err?.code
-      const lower = raw.toLowerCase()
-
-      const isRateLimited =
-        status === 429 ||
-        lower.includes('429') ||
-        lower.includes('quota') ||
-        lower.includes('rate limit') ||
-        lower.includes('exceeded')
-      const isAuthError =
-        status === 401 || status === 403 ||
-        lower.includes('api key') || lower.includes('permission') || lower.includes('unauthorized')
-
-      if (isRateLimited) {
-        // Pull "retry in 58s" / retryDelay: "58s" if the API included one
-        const m = raw.match(/retry[^0-9]{0,12}(\d+)(?:\.\d+)?\s*s/i)
-        const wait = m ? `about ${Math.ceil(Number(m[1]))} second(s)` : 'a little while'
-        setAiError(
-          `The AI usage limit has been reached for now. This is a limit on the Gemini API key, not your photo. Please try again in ${wait}. (The free tier allows a limited number of requests per day.)`,
-        )
-      } else if (isAuthError) {
-        setAiError('The AI service rejected the request (invalid or missing API key). Please check VITE_GEMINI_API_KEY in your .env file.')
+      const msg = (err?.message || '').toLowerCase()
+      if (msg.includes('limit') || msg.includes('429')) {
+        setAiError('AI usage limit reached for now. Please try again shortly.')
+      } else if (msg.includes('failed to fetch') || msg.includes('networkerror')) {
+        setAiError('Cannot reach the server. Make sure the backend is running at http://localhost:4000.')
       } else {
-        setAiError(raw || 'Something went wrong during analysis. Please try again.')
+        setAiError(err?.message || 'Something went wrong during analysis. Please try again.')
       }
     } finally {
       if (scanTimer.current) {
@@ -843,7 +845,7 @@ export default function WasteAnalysis() {
                             <span className={`flex h-8 w-8 items-center justify-center rounded-xl text-white shadow-sm bg-gradient-to-br ${isBig ? 'from-warning/80 to-warning' : 'from-success/80 to-primary-light'}`}>
                               {isBig ? <AlertTriangle className="h-4 w-4" /> : <CheckCircle2 className="h-4 w-4" />}
                             </span>
-                            <p className={`font-semibold text-sm ${isBig ? 'text-warning' : 'text-success'}`}>{volume || '-'}</p>
+                            <p className={`font-semibold text-sm ${isBig ? 'text-warning' : 'text-success'}`}>{volume ? volumeLabel : '-'}</p>
                           </div>
                         </div>
                       </div>
@@ -876,53 +878,98 @@ export default function WasteAnalysis() {
                   <h4 className="text-base font-bold text-primary-dark">Recommended Action</h4>
                 </div>
                 <p className="text-sm text-gray-500 ml-9 mb-6">
-                  {isBig
+                  {ewaste
+                    ? 'This looks like e-waste - take it to the nearest Grapari.'
+                    : isBig
                     ? 'A large volume was detected - collective handling is more effective. Choose one:'
+                    : isMedium
+                    ? 'A medium volume was detected - handle it yourself or invite the community. Choose one:'
                     : 'A small volume was detected - you can handle it yourself today.'}
                 </p>
 
                 {/* ---------- LARGE volume: 2 options ---------- */}
-                {isBig ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Smart Waste Map */}
-                    <button
-                      type="button"
-                      onClick={() => chooseAction('map')}
-                      className={`lift text-left rounded-3xl p-5 transition-all ${
-                        selectedAction === 'map' ? 'glass ring-glow' : 'glass-soft'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-primary-light flex items-center justify-center shadow-sm">
-                          <MapIcon className="h-5 w-5 text-white" />
-                        </div>
-                        {selectedAction === 'map' && <CheckCircle2 className="h-5 w-5 text-primary" />}
+                {ewaste ? (
+                  <div className="glass-soft rounded-3xl p-5">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-warning/80 to-warning flex items-center justify-center shadow-sm">
+                        <AlertTriangle className="h-5 w-5 text-white" />
                       </div>
-                      <p className="font-semibold text-primary-dark mb-1">Add to Smart Waste Map</p>
-                      <p className="text-xs text-gray-500 leading-relaxed">
-                        Pin this spot on the map so officers and other community members can see and handle it.
-                      </p>
-                    </button>
+                      <div>
+                        <p className="font-semibold text-primary-dark">E-waste / SIM card</p>
+                        <p className="text-xs text-gray-500">Take it to the nearest Grapari.</p>
+                      </div>
+                    </div>
+                    {grapari.length === 0 ? (
+                      <p className="text-xs text-gray-400">Finding the nearest Grapari…</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {grapari.map((g) => (
+                          <button
+                            key={g.id}
+                            type="button"
+                            onClick={() => { chooseAction('self'); setSelfChoice('bank') }}
+                            className={`w-full flex items-center justify-between rounded-2xl px-4 py-3 text-left transition-all ${selectedAction === 'self' ? 'bg-primary text-white' : 'bg-white hover:bg-bali-50'}`}
+                          >
+                            <span>
+                              <span className="block text-sm font-medium">{g.name}</span>
+                              {g.distanceKm != null && <span className="block text-xs opacity-70">{g.distanceKm.toFixed(1)} km</span>}
+                            </span>
+                            {selectedAction === 'self' && <CheckCircle2 className="h-4 w-4" />}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ) : isBig ? (
+                  <div className="space-y-4">
+                    <p className="text-sm font-medium text-primary-dark">Who should handle it?</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {[
+                        { kind: 'community', title: 'Environmental Community', desc: 'Community groups, e.g. Malu Dong.', grad: 'from-secondary to-info', Icon: HandHeart },
+                        { kind: 'waste_mgmt', title: 'Waste Management Organization', desc: 'Management orgs, e.g. Mitra Bhumi Lestari.', grad: 'from-primary to-primary-light', Icon: MapIcon },
+                      ].map(({ kind, title, desc, grad, Icon }) => (
+                        <button
+                          key={kind}
+                          type="button"
+                          onClick={() => chooseHandlerKind(kind)}
+                          className={`lift text-left rounded-3xl p-5 transition-all ${handlerKind === kind ? 'glass ring-glow' : 'glass-soft'}`}
+                        >
+                          <div className="flex items-center justify-between mb-3">
+                            <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${grad} flex items-center justify-center shadow-sm`}>
+                              <Icon className="h-5 w-5 text-white" />
+                            </div>
+                            {handlerKind === kind && <CheckCircle2 className="h-5 w-5 text-primary" />}
+                          </div>
+                          <p className="font-semibold text-primary-dark mb-1">{title}</p>
+                          <p className="text-xs text-gray-500 leading-relaxed">{desc}</p>
+                        </button>
+                      ))}
+                    </div>
 
-                    {/* Community */}
-                    <button
-                      type="button"
-                      onClick={() => chooseAction('community')}
-                      className={`lift text-left rounded-3xl p-5 transition-all ${
-                        selectedAction === 'community' ? 'glass ring-glow' : 'glass-soft'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-secondary to-info flex items-center justify-center shadow-sm">
-                          <HandHeart className="h-5 w-5 text-white" />
-                        </div>
-                        {selectedAction === 'community' && <CheckCircle2 className="h-5 w-5 text-primary" />}
+                    {handlerKind && (
+                      <div className="glass-soft rounded-3xl p-4">
+                        <p className="text-xs font-medium text-gray-500 mb-3">
+                          Choose a {handlerKind === 'community' ? 'community' : 'organization'}:
+                        </p>
+                        {handlerOrgs.length === 0 ? (
+                          <p className="text-xs text-gray-400">Loading…</p>
+                        ) : (
+                          <div className="space-y-2">
+                            {handlerOrgs.map((org) => (
+                              <button
+                                key={org.id}
+                                type="button"
+                                onClick={() => chooseOrg(org)}
+                                className={`w-full flex items-center justify-between rounded-2xl px-4 py-3 text-left transition-all ${selectedOrgId === org.id ? 'bg-primary text-white' : 'bg-white hover:bg-bali-50'}`}
+                              >
+                                <span className="text-sm font-medium">{org.name}</span>
+                                {selectedOrgId === org.id && <CheckCircle2 className="h-4 w-4" />}
+                              </button>
+                            ))}
+                          </div>
+                        )}
                       </div>
-                      <p className="font-semibold text-primary-dark mb-1">Clean up with the Community</p>
-                      <p className="text-xs text-gray-500 leading-relaxed">
-                        Join a nearby community cleanup and earn points together.
-                      </p>
-                    </button>
+                    )}
                   </div>
                 ) : (
                   /* ---------- SMALL volume: clean it yourself ---------- */
@@ -1097,22 +1144,49 @@ export default function WasteAnalysis() {
                   </div>
                 )}
 
-                {/* Community detail (large volume) */}
-                {isBig && selectedAction === 'community' && (
-                  <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 animate-slideInRight">
-                    {csrChallenges.map((c) => (
-                      <div key={c.id} className="lift glass-soft rounded-3xl p-4">
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="text-lg">{c.badge}</span>
-                          <p className="text-sm font-bold text-primary-dark leading-snug">{c.title}</p>
-                        </div>
-                        <p className="text-xs text-gray-500 mb-3 leading-relaxed">{c.desc}</p>
-                        <div className="flex items-center justify-between text-xs">
-                          <span className="text-gray-400">{c.participants} participants</span>
-                          <span className="font-semibold text-primary">{c.deadline}</span>
-                        </div>
+                {/* ---------- MEDIUM: choose a registered community ---------- */}
+                {isMedium && (
+                  <button
+                    type="button"
+                    onClick={() => chooseHandlerKind('community')}
+                    className={`lift w-full text-left rounded-3xl p-5 mt-2 transition-all ${
+                      handlerKind === 'community' ? 'glass ring-glow' : 'glass-soft'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-secondary to-info flex items-center justify-center shadow-sm">
+                        <HandHeart className="h-5 w-5 text-white" />
                       </div>
-                    ))}
+                      {handlerKind === 'community' && <CheckCircle2 className="h-5 w-5 text-primary" />}
+                    </div>
+                    <p className="font-semibold text-primary-dark mb-1">Clean up with the Community</p>
+                    <p className="text-xs text-gray-500 leading-relaxed">
+                      Hand it to a registered environmental community near you.
+                    </p>
+                  </button>
+                )}
+
+                {/* Registered communities to choose from */}
+                {isMedium && handlerKind === 'community' && (
+                  <div className="glass-soft rounded-3xl p-4 mt-3 animate-slideInRight">
+                    <p className="text-xs font-medium text-gray-500 mb-3">Choose a community:</p>
+                    {handlerOrgs.length === 0 ? (
+                      <p className="text-xs text-gray-400">Loading…</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {handlerOrgs.map((org) => (
+                          <button
+                            key={org.id}
+                            type="button"
+                            onClick={() => chooseOrg(org)}
+                            className={`w-full flex items-center justify-between rounded-2xl px-4 py-3 text-left transition-all ${selectedOrgId === org.id ? 'bg-primary text-white' : 'bg-white hover:bg-bali-50'}`}
+                          >
+                            <span className="text-sm font-medium">{org.name}</span>
+                            {selectedOrgId === org.id && <CheckCircle2 className="h-4 w-4" />}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -1157,13 +1231,7 @@ export default function WasteAnalysis() {
                   <button
                     type="button"
                     disabled={!selectedAction || !location || (selectedAction === 'self' && !selfChoice)}
-                    onClick={() => {
-                      if (selectedAction === 'map') { navigate('/waste-map'); return }
-                      const pts = pointsFor(selectedAction, selfChoice)
-                      setEarnedPoints(pts)
-                      setSubmitted(true)
-                      setShowPoints(true)
-                    }}
+                    onClick={handleSubmit}
                     className="lift bg-gradient-to-r from-primary to-primary-light text-white flex items-center justify-center gap-2 px-8 py-3 rounded-2xl text-sm font-semibold shadow-md disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
                   >
                     {selectedAction === 'map' ? 'Open Smart Waste Map' : 'Submit Report'}

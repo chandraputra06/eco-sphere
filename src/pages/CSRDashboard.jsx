@@ -1,6 +1,7 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import {
-  LayoutDashboard, MapPin, BarChart3, Users, Sparkles, Download, CircleDot, Menu, X,
+  LayoutDashboard, MapPin, BarChart3, Users, Sparkles, Download, CircleDot, Menu, X, Home,
 } from 'lucide-react'
 import { COMPANY } from '../components/csr/csrData'
 import TabOverview from '../components/csr/TabOverview'
@@ -66,8 +67,11 @@ export default function CSRDashboard() {
           <nav className="flex-1 px-3 py-5 space-y-1">
             <NavItems />
           </nav>
-          <div className="px-4 py-4 border-t border-white/10">
-            <div className="flex items-center gap-3">
+          <div className="px-3 py-4 border-t border-white/10 space-y-2">
+            <Link to="/" className="w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-bali-50/70 hover:bg-white/10 hover:text-white transition">
+              <Home className="h-5 w-5" /> Back to Home
+            </Link>
+            <div className="flex items-center gap-3 px-1">
               <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary to-primary-light flex items-center justify-center text-sm font-bold">{COMPANY.initials}</div>
               <div className="min-w-0">
                 <p className="text-sm font-semibold truncate">{COMPANY.name}</p>
@@ -90,6 +94,11 @@ export default function CSRDashboard() {
                 <button onClick={() => setMobileNav(false)}><X className="h-5 w-5" /></button>
               </div>
               <nav className="flex-1 px-3 py-5 space-y-1"><NavItems onPick={() => setMobileNav(false)} /></nav>
+              <div className="px-3 py-4 border-t border-white/10">
+                <Link to="/" onClick={() => setMobileNav(false)} className="w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-bali-50/70 hover:bg-white/10 hover:text-white transition">
+                  <Home className="h-5 w-5" /> Back to Home
+                </Link>
+              </div>
             </aside>
           </div>
         )}

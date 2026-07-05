@@ -1,10 +1,10 @@
-import { Navigate } from "react-router-dom";
-import { isUserLoggedIn } from "../services/authService";
+// src/routes/ProtectedRoute.jsx
+import { Navigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 
 export default function ProtectedRoute({ children }) {
-  if (!isUserLoggedIn()) {
-    return <Navigate to="/" replace />;
-  }
-
-  return children;
+  const { isAuthenticated, loading } = useAuth()
+  if (loading) return <div className="grid min-h-screen place-items-center text-primary">Memuat…</div>
+  if (!isAuthenticated) return <Navigate to="/login" replace />
+  return children
 }

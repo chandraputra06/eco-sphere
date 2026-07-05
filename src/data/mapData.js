@@ -35,3 +35,11 @@ export const bankSampahData = [
   { id: 7, name: "Denpasar Used Cooking Oil Collector", lat: -8.6520, lng: 115.2300, type: "pengepul", address: "Jl. Imam Bonjol, Denpasar", hours: "Mon-Sat 08:00-17:00", accepts: ["Used cooking oil"], price: "Rp 4,000/liter", howToRegister: "Walk in with container" },
   { id: 8, name: "Bank Sampah Renon Hijau", lat: -8.6710, lng: 115.2390, type: "bank_sampah", address: "Jl. Raya Puputan, Renon", hours: "Mon-Sat 08:00-15:00", accepts: ["Plastic", "Paper"], price: "Paid per kg", howToRegister: "Walk in" },
 ];
+
+export const grapariData = [
+  { id: 'grapari-renon', name: 'GraPARI Renon', lat: -8.6710, lng: 115.2390, address: 'Jl. Raya Puputan No.100, Renon, Denpasar', hours: 'Mon-Sat 08:00-17:00', services: ['E-waste drop', 'SIM card recycle'] },
+  { id: 'grapari-teuku-umar', name: 'GraPARI Teuku Umar', lat: -8.6805, lng: 115.2050, address: 'Jl. Teuku Umar No.6, Denpasar', hours: 'Mon-Sat 08:00-17:00', services: ['E-waste drop'] },
+  { id: 'grapari-sunset', name: 'GraPARI Sunset Road', lat: -8.7080, lng: 115.1750, address: 'Jl. Sunset Road, Kuta, Badung', hours: 'Daily 09:00-18:00', services: ['E-waste drop', 'SIM card recycle'] },
+  { id: 'grapari-sanur', name: 'GraPARI Sanur', lat: -8.6870, lng: 115.2610, address: 'Jl. By Pass Ngurah Rai, Sanur', hours: 'Daily 09:00-17:00', services: ['E-waste drop', 'Battery drop'] },
+  { id: 'grapari-gianyar', name: 'GraPARI Gianyar', lat: -8.5430, lng: 115.3260, address: 'Jl. Ngurah Rai, Gianyar', hours: 'Mon-Sat 08:00-16:00', services: ['E-waste drop'] },
+]
